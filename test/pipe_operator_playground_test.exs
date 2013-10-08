@@ -11,15 +11,15 @@ defmodule Unix do
   end
 
   def grep(input, match) do
-    lines = String.split(input, "\n")
-    Enum.filter(lines, fn(line) -> Regex.match?(%r/#{match}/, line) end)
+    String.split(input, "\n")
+      |> Enum.filter(fn(line) -> Regex.match?(%r/#{match}/, line) end)
   end
 
   def awk(lines, column) do
     Enum.map(lines, fn(line) ->
-      stripped = String.strip(line)
-      columns = Regex.split(%r/ /, stripped, trim: true)
-      Enum.at(columns, column-1)
+      String.strip(line)
+        |> (&Regex.split(%r/ /, &1, trim: true)).()
+        |> Enum.at(column-1)
     end)
   end
 end
@@ -58,6 +58,8 @@ defmodule PipeOperatorPlaygroundTest do
   end
 
   test "the whole pipeline works" do
+    assert Unix.awk(Unix.grep(Unix.ps_ax, 'vim'), 1) == ["10919", "13936"]
+
     assert (Unix.ps_ax |> Unix.grep('vim') |> Unix.awk(1)) == ["10919", "13936"]
   end
 end
